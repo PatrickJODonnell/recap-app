@@ -113,7 +113,7 @@
                             <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">{{ $form.email.error?.message }}</Message>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <InputText name="password" type="password" placeholder="Password" />
+                            <Password name="password" placeholder="Password" toggleMask :feedback="false" class="w-full" inputClass="w-full"/>
                             <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">{{ $form.password.error?.message }}</Message>
                         </div>
                         <Button type="submit" severity="secondary" label="Log In" />
@@ -140,7 +140,7 @@
                             <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">{{ $form.email.error?.message }}</Message>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <InputText name="password" type="password" placeholder="Password" />
+                            <Password name="password" placeholder="Password" toggleMask class="w-full" inputClass="w-full"/>
                             <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">{{ $form.password.error?.message }}</Message>
                         </div>
                         <Button type="submit" severity="secondary" label="Sign Up" />
@@ -191,4 +191,7 @@
 </template>
 
 <style scoped>
+    /* Overriding password styling */
+
+
 </style>
