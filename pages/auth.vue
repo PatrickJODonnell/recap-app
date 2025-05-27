@@ -4,11 +4,13 @@
     import { z } from 'zod';
     import { useToast } from "primevue/usetoast";
     import type { FormSubmitEvent } from '@primevue/forms';
+    import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 
     // Initializing toast
     const toast = useToast();
 
     // Ref values
+    const { $auth } = useNuxtApp();
     const route = useRoute();
     const mode = ref<string>('login');
     const initialValues = ref({
@@ -55,12 +57,18 @@
     ));
 
     // Login form submission
-    const onLoginFormSubmit = (loginSubmissionEvent: FormSubmitEvent) => {
+    const onLoginFormSubmit = async (loginSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = loginSubmissionEvent.valid;
         const email: string = loginSubmissionEvent.states.email.value;
         const password: string = loginSubmissionEvent.states.password.value;
         if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE LOGIN LOGIC
+            // Signing User in and populating user store
+            const userCreds = await signInWithEmailAndPassword($auth, email, password);
+            const authResponse = await authedFetch('/api/users/get', {
+                method: 'GET',
+                query: { uid: userCreds.user.uid }
+            });
+            console.log(authResponse); // TODO -> PICK UP HERE WITH AUTH
             toast.add({ severity: 'success', summary: 'Welcome in!', detail: 'Successful Log In', life: 3000 });
             loginSubmissionEvent.reset();
         } else {

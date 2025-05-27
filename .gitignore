@@ -22,3 +22,6 @@ logs
 .env
 .env.*
 !.env.example
+
+# firebase
+recap-9dbae-firebase-adminsdk-fbsvc-58e798bdee.json
