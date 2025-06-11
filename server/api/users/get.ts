@@ -18,7 +18,6 @@ export default defineEventHandler( async (event) => {
             console.error('[ERROR] Unauthorized');
             throw createError({statusCode: 401, statusMessage: '[ERROR] Unauthorized'})
         }
-        console.log(user)
         // Gathering params
         const params = getQuery(event);
         const uid: string = String(params.uid);
@@ -34,8 +33,20 @@ export default defineEventHandler( async (event) => {
             throw createError({statusCode: 501, statusMessage: '[ERROR] FIREBASE FAILED TO PULL USER INFO'})
         }
 
-        return ({statusMessage: doc.data() as User, statusCode: 200})
+        //Creating returned dict
+        const returnObj: User = {
+            birthDate: doc.data()?.birthDate,
+            email: doc.data()?.email,
+            firstName: doc.data()?.firstName,
+            lastName: doc.data()?.lastName,
+            plan: doc.data()?.plan,
+            signUpDate: doc.data()?.signUpDate,
+            interests: doc.data()?.interests,
+            uid: userRef.id,
+        }
+
+        return ({statusMessage: returnObj, statusCode: 200})
     } catch (error) {
-        return {statusCode: 500, statusMessage: "[ERROR] Server Error"}
+        throw createError({statusCode: 500, statusMessage: "[ERROR] Server Error"})
     }
 });

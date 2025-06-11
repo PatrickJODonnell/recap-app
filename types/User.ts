@@ -6,4 +6,5 @@ export interface User {
   plan: string;
   signUpDate: string;
   interests: string[];
+  uid: string;
 }

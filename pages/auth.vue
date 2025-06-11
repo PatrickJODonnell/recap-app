@@ -24,6 +24,7 @@
     const initialForgotValues = ref({
         email: ''
     });
+    const user = useUserStore();
 
     // Getting initial route information
     onMounted(() => {
@@ -68,9 +69,19 @@
                 method: 'GET',
                 query: { uid: userCreds.user.uid }
             });
-            console.log(authResponse); // TODO -> PICK UP HERE WITH AUTH
-            toast.add({ severity: 'success', summary: 'Welcome in!', detail: 'Successful Log In', life: 3000 });
-            loginSubmissionEvent.reset();
+            if (authResponse.statusCode === 200) {
+                try {
+                    user.populateStore(authResponse.statusMessage);
+                    toast.add({ severity: 'success', summary: 'Welcome in!', detail: 'Successful Log In', life: 3000 });
+                    loginSubmissionEvent.reset();
+                    navigateTo("/home");
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                toast.add({ severity: 'error', summary: 'Unsuccessful Log In', detail: 'Please try again', life: 3000 });
+            }
+            
         } else {
             toast.add({ severity: 'error', summary: 'Unsuccessful Log In', detail: 'Please try again', life: 3000 });
         }
