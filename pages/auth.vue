@@ -4,7 +4,7 @@
     import { z } from 'zod';
     import { useToast } from "primevue/usetoast";
     import type { FormSubmitEvent } from '@primevue/forms';
-    import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 
     // Initializing toast
     const toast = useToast();
@@ -72,7 +72,6 @@
             if (authResponse.statusCode === 200) {
                 try {
                     user.populateStore(authResponse.statusMessage);
-                    toast.add({ severity: 'success', summary: 'Welcome in!', detail: 'Successful Log In', life: 3000 });
                     loginSubmissionEvent.reset();
                     navigateTo("/home");
                 } catch (e) {
@@ -88,15 +87,31 @@
     };
 
     // Sign up form submission
-    const onSignUpFormSubmit = (signUpSubmissionEvent: FormSubmitEvent) => {
+    const onSignUpFormSubmit = async (signUpSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = signUpSubmissionEvent.valid;
         const email: string = signUpSubmissionEvent.states.email.value;
         const password: string = signUpSubmissionEvent.states.password.value;
         if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE SIGN UP LOGIC
-            navigateTo('/auth?mode=login');
-            toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Please confirm your email to log in', life: 5000 });
-            signUpSubmissionEvent.reset();
+            try{
+                const userCreds = await createUserWithEmailAndPassword($auth, email, password);
+                const authResponse = await authedFetch('/api/users/create', {
+                    method: 'POST',
+                    body: { 
+                        uid: userCreds.user.uid,
+                        email: email
+                    }
+                });
+                try {
+                    user.populateStore(authResponse.statusMessage);
+                    signUpSubmissionEvent.reset();
+                    navigateTo("/home");
+                } catch (e) {
+                    console.error(e);
+                }
+            } catch {
+                toast.add({severity: 'error', summary: 'Unsuccessful Sign Up', detail: 'User already exists', life: 3000})
+                signUpSubmissionEvent.reset();
+            }
         } else {
             toast.add({severity: 'error', summary: 'Unsuccessful Sign Up', detail: 'Please try again', life: 3000})
         }

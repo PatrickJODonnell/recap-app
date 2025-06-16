@@ -1,11 +1,6 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getAuth, setPersistence, browserSessionPersistence } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { getFunctions } from "firebase/functions";
-import { getAnalytics } from "firebase/analytics";
-import { getRemoteConfig } from "firebase/remote-config";
-import { getStorage } from "firebase/storage";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check"
 
 export default defineNuxtPlugin(async () => {
     let appId: string = "G-MBX6JF38Z4";
@@ -28,7 +23,7 @@ export default defineNuxtPlugin(async () => {
         console.log('Using existing Firebase app');
     }
     const auth = getAuth(app);
-    setPersistence(auth, browserSessionPersistence);
+    setPersistence(auth, browserLocalPersistence);
     const firestore = getFirestore(app);
 
     return {
