@@ -4,7 +4,7 @@
     import { z } from 'zod';
     import { useToast } from "primevue/usetoast";
     import type { FormSubmitEvent } from '@primevue/forms';
-    import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
     // Initializing toast
     const toast = useToast();
@@ -118,13 +118,30 @@
     }
 
     // Forgot password form submission
-    const onForgotFormSubmit = (forgotSubmissionEvent: FormSubmitEvent) => {
+    const onForgotFormSubmit = async (forgotSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = forgotSubmissionEvent.valid;
         const email: string = forgotSubmissionEvent.states.email.value;
-        if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE FORGOT PASSWORD LOGIC
-            navigateTo('/auth?mode=login');
-            toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Check your inbox for a reset email', life: 5000 });
+        const emailExists = await $fetch('/api/users/check', {
+            method: 'GET',
+            params: {
+                email: email
+            }
+        });
+        if (valid && emailExists.statusMessage) {
+            await sendPasswordResetEmail($auth, email)
+            .then(() => {
+                navigateTo('/auth?mode=login');
+                toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Check your inbox for a reset email', life: 5000 });
+                forgotSubmissionEvent.reset();
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error(`FAILED TO SEND PASSWORD RESET EMAIL: ${errorCode}-${errorMessage}`);
+                toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'Please try again or contact support', life: 3000});
+            });
+        } else if (valid && !emailExists.statusMessage) {
+            toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'User with email does not exist', life: 3000});
             forgotSubmissionEvent.reset();
         } else {
             toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'Please try again', life: 3000})
