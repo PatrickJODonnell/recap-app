@@ -1,11 +1,19 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+</script>
 
 <template>
-    <div class="index-background">
-        home
-        <Button label="Verify" />
+    <NavBar/>
+    <div class="home-background">
+        <div>
+            HERE I AM
+        </div>
     </div>
 </template>
 
 <style scoped>
+    .home-background{
+        margin-top: 8vh;
+        height: 92vh;
+        background-color: #f9f9f9;
+    }
 </style>
