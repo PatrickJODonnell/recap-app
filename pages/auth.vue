@@ -4,11 +4,13 @@
     import { z } from 'zod';
     import { useToast } from "primevue/usetoast";
     import type { FormSubmitEvent } from '@primevue/forms';
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
 
     // Initializing toast
     const toast = useToast();
 
     // Ref values
+    const { $auth } = useNuxtApp();
     const route = useRoute();
     const mode = ref<string>('login');
     const initialValues = ref({
@@ -22,6 +24,7 @@
     const initialForgotValues = ref({
         email: ''
     });
+    const user = useUserStore();
 
     // Getting initial route information
     onMounted(() => {
@@ -55,42 +58,90 @@
     ));
 
     // Login form submission
-    const onLoginFormSubmit = (loginSubmissionEvent: FormSubmitEvent) => {
+    const onLoginFormSubmit = async (loginSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = loginSubmissionEvent.valid;
         const email: string = loginSubmissionEvent.states.email.value;
         const password: string = loginSubmissionEvent.states.password.value;
         if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE LOGIN LOGIC
-            toast.add({ severity: 'success', summary: 'Welcome in!', detail: 'Successful Log In', life: 3000 });
-            loginSubmissionEvent.reset();
+            // Signing User in and populating user store
+            const userCreds = await signInWithEmailAndPassword($auth, email, password);
+            const authResponse = await authedFetch('/api/users/get', {
+                method: 'GET',
+                query: { uid: userCreds.user.uid }
+            });
+            if (authResponse.statusCode === 200) {
+                try {
+                    user.populateStore(authResponse.statusMessage);
+                    loginSubmissionEvent.reset();
+                    navigateTo("/home");
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                toast.add({ severity: 'error', summary: 'Unsuccessful Log In', detail: 'Please try again', life: 3000 });
+            }
+            
         } else {
             toast.add({ severity: 'error', summary: 'Unsuccessful Log In', detail: 'Please try again', life: 3000 });
         }
     };
 
     // Sign up form submission
-    const onSignUpFormSubmit = (signUpSubmissionEvent: FormSubmitEvent) => {
+    const onSignUpFormSubmit = async (signUpSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = signUpSubmissionEvent.valid;
         const email: string = signUpSubmissionEvent.states.email.value;
         const password: string = signUpSubmissionEvent.states.password.value;
         if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE SIGN UP LOGIC
-            navigateTo('/auth?mode=login');
-            toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Please confirm your email to log in', life: 5000 });
-            signUpSubmissionEvent.reset();
+            try{
+                const userCreds = await createUserWithEmailAndPassword($auth, email, password);
+                const authResponse = await authedFetch('/api/users/create', {
+                    method: 'POST',
+                    body: { 
+                        uid: userCreds.user.uid,
+                        email: email
+                    }
+                });
+                try {
+                    user.populateStore(authResponse.statusMessage);
+                    signUpSubmissionEvent.reset();
+                    navigateTo("/home");
+                } catch (e) {
+                    console.error(e);
+                }
+            } catch {
+                toast.add({severity: 'error', summary: 'Unsuccessful Sign Up', detail: 'User already exists', life: 3000})
+                signUpSubmissionEvent.reset();
+            }
         } else {
             toast.add({severity: 'error', summary: 'Unsuccessful Sign Up', detail: 'Please try again', life: 3000})
         }
     }
 
     // Forgot password form submission
-    const onForgotFormSubmit = (forgotSubmissionEvent: FormSubmitEvent) => {
+    const onForgotFormSubmit = async (forgotSubmissionEvent: FormSubmitEvent) => {
         const valid: boolean = forgotSubmissionEvent.valid;
         const email: string = forgotSubmissionEvent.states.email.value;
-        if (valid) {
-            // TODO -> HERE IS WHERE WE WILL HOUSE THE FORGOT PASSWORD LOGIC
-            navigateTo('/auth?mode=login');
-            toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Check your inbox for a reset email', life: 5000 });
+        const emailExists = await $fetch('/api/users/check', {
+            method: 'GET',
+            params: {
+                email: email
+            }
+        });
+        if (valid && emailExists.statusMessage) {
+            await sendPasswordResetEmail($auth, email)
+            .then(() => {
+                navigateTo('/auth?mode=login');
+                toast.add({ severity: 'success', summary: 'Thank you!', detail: 'Check your inbox for a reset email', life: 5000 });
+                forgotSubmissionEvent.reset();
+            })
+            .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                console.error(`FAILED TO SEND PASSWORD RESET EMAIL: ${errorCode}-${errorMessage}`);
+                toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'Please try again or contact support', life: 3000});
+            });
+        } else if (valid && !emailExists.statusMessage) {
+            toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'User with email does not exist', life: 3000});
             forgotSubmissionEvent.reset();
         } else {
             toast.add({severity: 'error', summary: 'Unsuccessful Reset', detail: 'Please try again', life: 3000})
@@ -113,7 +164,7 @@
                             <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">{{ $form.email.error?.message }}</Message>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <InputText name="password" type="password" placeholder="Password" />
+                            <Password name="password" placeholder="Password" toggleMask :feedback="false" class="w-full" inputClass="w-full"/>
                             <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">{{ $form.password.error?.message }}</Message>
                         </div>
                         <Button type="submit" severity="secondary" label="Log In" />
@@ -140,7 +191,7 @@
                             <Message v-if="$form.email?.invalid" severity="error" size="small" variant="simple">{{ $form.email.error?.message }}</Message>
                         </div>
                         <div class="flex flex-col gap-1">
-                            <InputText name="password" type="password" placeholder="Password" />
+                            <Password name="password" placeholder="Password" toggleMask class="w-full" inputClass="w-full"/>
                             <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">{{ $form.password.error?.message }}</Message>
                         </div>
                         <Button type="submit" severity="secondary" label="Sign Up" />
@@ -191,4 +242,7 @@
 </template>
 
 <style scoped>
+    /* Overriding password styling */
+
+
 </style>

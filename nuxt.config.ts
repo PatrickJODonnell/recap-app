@@ -72,8 +72,13 @@ export default defineNuxtConfig({
     '~/assets/css/main.css',
   ],
   modules: [
-    '@primevue/nuxt-module'
+    '@primevue/nuxt-module',
+    "@pinia/nuxt",
+    'pinia-plugin-persistedstate/nuxt',
   ],
+  piniaPluginPersistedstate: {
+    storage: 'localStorage'
+  },
   primevue: {
     options: {
       theme: {
