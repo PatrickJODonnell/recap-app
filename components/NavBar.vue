@@ -1,17 +1,24 @@
 <script setup lang="ts">
-    // Imports
+// Imports
 
-    // Ref values
-    const route = useRoute();
+// Ref values
+const route = useRoute();
+const userStore = useUserStore();
+const firstInitial = ref<string | undefined>(userStore.firstName?.substring(0, 1));
 
-    // Logo navigation
-    const navToPage = () => {
-        if (route.path === '/auth') {
-            navigateTo('/');
-        } else {
-            navigateTo('/home')
-        }
+// Logo navigation
+const navToPage = () => {
+    if (route.path === '/auth') {
+        navigateTo('/');
+    } else {
+        navigateTo('/home')
     }
+}
+
+// Navigating to settings page
+const handleInitialClick = () => {
+    navigateTo('/profile');
+}
 
 </script>
 
@@ -22,10 +29,11 @@
     <div v-else class="fixed top-0 left-0 flex flex-row items-center justify-between w-full min-h-[8vh] bg-red px-5">
         <img class="max-h-[8vh] cursor-pointer" src="/assets/images/logo.png" alt="Recap Logo" @click="navToPage">
         <div class="flex flex-row items-center">
-            <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+            <div class="w-10 h-10 rounded-full bg-blue-200 flex items-center justify-center text-gray-700 font-semibold cursor-pointer" @click="handleInitialClick">
+                {{ firstInitial }}
+            </div>
         </div>
     </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
