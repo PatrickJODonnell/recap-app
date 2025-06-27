@@ -41,6 +41,7 @@ export default defineEventHandler( async (event) => {
             return({statusCode: 204, statusMessage: null})
         }
     } catch (error) {
+        console.log("EEEERRRROR", error)
         throw createError({statusCode: 500, statusMessage: "[ERROR] Server Error"})
     }
 });
