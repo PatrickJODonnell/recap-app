@@ -34,7 +34,9 @@ export default defineEventHandler( async (event) => {
                 webFinalSummaries: contentData.webFinalSummaries,
                 webLinks: contentData.webLinks,
                 youtubeFinalSummaries: contentData.youtubeFinalSummaries,
-                youtubeLinks: contentData.youtubeLinks
+                youtubeLinks: contentData.youtubeLinks,
+                youtubeFinalTitles: contentData.youtubeFinalTitles,
+                webFinalTitles: contentData.webFinalTitles
             }
             return({statusCode: 200, statusMessage: content})
         } catch {

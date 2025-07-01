@@ -4,4 +4,6 @@ export interface Content {
   webLinks: string[]
   youtubeFinalSummaries: string[]
   youtubeLinks: string[]
+  webFinalTitles: string[]
+  youtubeFinalTitles: string[]
 }
