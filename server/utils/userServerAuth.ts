@@ -24,7 +24,8 @@ export const useServerAuth = async (event: H3Event) => {
       userData: userData,
       firebaseAuthUser: firebaseAuthUser
     };
-  }).catch(() => {
+  }).catch((err) => {
+    console.log('err', err);
     return false as const;
   });
   return user;

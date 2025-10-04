@@ -10,13 +10,13 @@ import type { User } from "~/types/User";
  * 
  * Object returned will contain user information
  */
-export default defineEventHandler( async (event) => {
+export default defineEventHandler(async (event) => {
     try {
         // Verifying request
         const user = await useServerAuth(event);
         if (!user) {
             console.error('[ERROR] Unauthorized');
-            throw createError({statusCode: 401, statusMessage: '[ERROR] Unauthorized'})
+            throw createError({ statusCode: 401, statusMessage: '[ERROR] Unauthorized' })
         }
         // Gathering params
         const params = getQuery(event);
@@ -30,7 +30,7 @@ export default defineEventHandler( async (event) => {
         // Error handling
         if (doc === undefined) {
             console.error('[ERROR] FIREBASE FAILED TO PULL USER INFO');
-            throw createError({statusCode: 501, statusMessage: '[ERROR] FIREBASE FAILED TO PULL USER INFO'})
+            throw createError({ statusCode: 501, statusMessage: '[ERROR] FIREBASE FAILED TO PULL USER INFO' })
         }
 
         //Creating returned dict
@@ -45,8 +45,8 @@ export default defineEventHandler( async (event) => {
             uid: userRef.id,
         }
 
-        return ({statusMessage: returnObj, statusCode: 200})
+        return ({ statusMessage: returnObj, statusCode: 200 })
     } catch (error) {
-        throw createError({statusCode: 500, statusMessage: "[ERROR] Server Error"})
+        throw createError({ statusCode: 500, statusMessage: "[ERROR] Server Error" })
     }
 });

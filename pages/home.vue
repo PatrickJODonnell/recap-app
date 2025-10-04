@@ -50,6 +50,7 @@ onMounted(async () => {
     });
 });
 
+
 function getYouTubeEmbedUrl(url: string): string {
     const match = url.match(/(?:v=|\.be\/|\/embed\/)([a-zA-Z0-9_-]{11})/);
     return match ? `https://www.youtube.com/embed/${match[1]}` : '';

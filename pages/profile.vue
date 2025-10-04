@@ -1,5 +1,6 @@
 <script setup lang="ts">
 // Imports
+import { useToast } from "primevue/usetoast";
 
 // Ref Values
 const userStore = useUserStore();
@@ -9,6 +10,8 @@ const email = ref<string | null>(null);
 const birthDate = ref<Date | null>(null);
 const plan = ref<string | null>(null);
 const interests = ref<string | null>(null);
+
+const toast = useToast();
 
 // Populating ref values from store
 onMounted(() => {
@@ -23,6 +26,25 @@ onMounted(() => {
     plan.value = userStore.plan;
     interests.value = userStore.interests.join(', ');
 })
+
+// Handling submission of profile changes
+const handleSubmit = async () => {
+    const profileResponse = await authedFetch('/api/users/update', {
+        method: 'POST',
+        body: {
+            uid: userStore.uid,
+            firstName: firstName.value,
+            lastName: lastName.value,
+            birthDate: birthDate.value,
+            interests: interests.value,
+        }
+    })
+    if (profileResponse.statusCode === 200) {
+        toast.add({ severity: 'success', summary: 'Profile Updated', detail: 'Profile updated successfully', life: 3000 });
+    } else {
+        toast.add({ severity: 'error', summary: 'Profile Update Failed', detail: 'Please try again', life: 3000 });
+    }
+}
 
 </script>
 
@@ -54,7 +76,8 @@ onMounted(() => {
 
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <InputText v-model="email" id="email" class="w-full" disabled v-tooltip="'Sorry! No email changes for now.'"/>
+                    <InputText v-model="email" id="email" class="w-full" disabled
+                        v-tooltip="'Sorry! No email changes for now.'" />
                 </div>
 
                 <div>
@@ -64,21 +87,37 @@ onMounted(() => {
 
                 <div>
                     <label for="plan" class="block text-sm font-medium text-gray-700 mb-1">Plan</label>
-                    <InputText v-model="plan" id="plan" class="w-full" disabled v-tooltip="'Only basic plans are currently available.'"/>
+                    <InputText v-model="plan" id="plan" class="w-full" disabled
+                        v-tooltip="'Only basic plans are currently available.'" />
                 </div>
 
                 <div>
                     <label for="interests" class="block text-sm font-medium text-gray-700 mb-1">Interests</label>
-                    <Textarea rows=7 v-model="interests" id="interests" class="w-full" placeholder="Pick your interests" v-tooltip="'Enter interests seperated by a comma and a space.'"/>
+                    <Textarea rows=7 v-model="interests" id="interests" class="w-full" placeholder="Pick your interests"
+                        v-tooltip="'Enter interests seperated by a comma and a space.'" />
                 </div>
 
                 <div class="flex justify-center">
-                    <Button type="submit" label="Submit"
-                        class="hover:bg-blue-600 text-white px-4 py-2 rounded" />
+                    <Button type="submit" label="Submit" severity="secondary" />
                 </div>
             </form>
         </div>
     </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.login-button {
+    display: inline-block;
+    padding: 12px 24px;
+    font-size: 1rem;
+    background-color: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+.login-button:hover {
+    background-color: #0056b3;
+}
+</style>
